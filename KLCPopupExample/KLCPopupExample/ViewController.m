@@ -73,7 +73,7 @@ typedef NS_ENUM(NSInteger, CellType) {
 }
 
 @property (nonatomic, strong) UITableView* tableView;
-@property (nonatomic, strong) UIPopoverController* popover;
+@property (nonatomic, strong) UIViewController* popover;
 
 // Private
 - (void)updateFieldTableView:(UITableView*)tableView;
@@ -711,23 +711,26 @@ typedef NS_ENUM(NSInteger, CellType) {
         fieldTableView.tag = fieldTag;
         fieldController.view = fieldTableView;
         
-        // IPAD
-        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-          
-          // Present in a popover
-          UIPopoverController* popover = [[UIPopoverController alloc] initWithContentViewController:fieldController];
-          popover.delegate = self;
-          self.popover = popover;
-          
-          // Set KVO so we can adjust the popover's size to fit the table's content once it's populated.
-          [fieldTableView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:nil];
-          
-          CGRect senderFrameInView = [self.tableView convertRect:[self.tableView rectForRowAtIndexPath:indexPath] toView:self.view];
-          [popover presentPopoverFromRect:senderFrameInView inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
-        }
-        
-        // IPHONE
-        else {
+//        // IPAD
+//        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+//            // Present in a popover
+//            UIViewController* popover = [UIViewController new];
+//            popover.popoverPresentationController.sourceRect = fieldController.view.frame;
+//            popover.popoverPresentationController.sourceView = fieldController.view;
+//            popover.modalPresentationStyle = UIModalPresentationPopover;
+//            self.popover = popover;
+//
+//          // Set KVO so we can adjust the popover's size to fit the table's content once it's populated.
+//          [fieldTableView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:nil];
+//
+//          //CGRect senderFrameInView = [self.tableView convertRect:[self.tableView rectForRowAtIndexPath:indexPath] toView:self.view];
+//            [popover presentViewController:self animated:YES completion:^{
+//
+//            }];
+//        }
+//
+//        // IPHONE
+//        else {
           
           // Present in a modal
           UITableViewCell* cell = [tableView cellForRowAtIndexPath:indexPath];
@@ -740,7 +743,7 @@ typedef NS_ENUM(NSInteger, CellType) {
           [self presentViewController:navigationController animated:YES completion:NULL];
         }
       }
-    }
+    //}
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
   }
   
@@ -770,13 +773,7 @@ typedef NS_ENUM(NSInteger, CellType) {
     [self.tableView reloadData];
     
     // IPAD
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-      [self.popover dismissPopoverAnimated:YES];
-    }
-    // IPHONE
-    else {
-      [self dismissViewControllerAnimated:YES completion:NULL];
-    }
+    [self dismissViewControllerAnimated:YES completion:NULL];
   }
 }
 
@@ -799,10 +796,10 @@ typedef NS_ENUM(NSInteger, CellType) {
 
 #pragma mark - <UIPopoverControllerDelegate>
 
-- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
+- (void)popoverControllerDidDismissPopover:(UIViewController *)popoverController {
   
   // Cleanup by removing KVO and reference to popover
-  UIView* view = popoverController.contentViewController.view;
+  UIView* view = popoverController.view;
   if ([view isKindOfClass:[UITableView class]]) {
     [(UITableView*)view removeObserver:self forKeyPath:@"contentSize"];
   }
@@ -821,7 +818,7 @@ typedef NS_ENUM(NSInteger, CellType) {
       UITableView* tableView = (UITableView*)object;
       
       if (self.popover != nil) {
-        [self.popover setPopoverContentSize:tableView.contentSize animated:NO];
+        //[self.popover setPopoverContentSize:tableView.contentSize animated:NO];
       }
       
       // Make sure the selected row is scrolled into view when it appears
